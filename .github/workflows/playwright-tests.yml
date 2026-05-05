@@ -8,6 +8,11 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # Yahan hum GitHub ko bata rahe hain ke saara kaam is folder ke andar karein
+    defaults:
+      run:
+        working-directory: web-automation-realtec
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -37,3 +42,4 @@ jobs:
             *Status:* ${{ job.status == 'success' && '🟢 Success' || '🔴 Failed' }}
             *Executed By:* ${{ github.actor }}
           SLACK_COLOR: ${{ job.status == 'success' && '#2EB67D' || '#E01E5A' }}
+          SLACK_USERNAME: 'QA Automation Bot'
