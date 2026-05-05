@@ -8,9 +8,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: web-automation-realtec
+    # Humne "defaults" wali lines delete kar di hain taake path theek ho jaye
 
     steps:
       - name: Checkout Repository
@@ -42,4 +40,3 @@ jobs:
             *Executed By:* ${{ github.actor }}
           SLACK_COLOR: ${{ job.status == 'success' && '#2EB67D' || '#E01E5A' }}
           SLACK_USERNAME: 'QA Automation Bot'
-          SLACK_ICON_EMOJI: ':robot_face:'
