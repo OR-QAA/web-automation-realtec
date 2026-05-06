@@ -80,7 +80,7 @@ test('Complete E2E Flow', async ({ page }) => {
 
   // Click Sign Up submit button
   await registerForm.getByRole('button', { name: 'Sign Up' }).first().click();
-  await page.waitForURL('https://realspicestepps.com/');
+  await page.waitForURL(/^https:\/\/realspicestepps\.com\/?(?:[?#].*)?$/);
   await page.waitForTimeout(1000);
   console.log('Sign Up done ✅');
 
@@ -99,7 +99,7 @@ test('Complete E2E Flow', async ({ page }) => {
   // Click Yes on logout confirmation dialog
   await page.waitForSelector('#rt-logout-yes-btn', { state: 'visible' });
   await page.locator('#rt-logout-yes-btn').click();
-  await page.waitForURL('https://realspicestepps.com/');
+  await page.waitForURL(/^https:\/\/realspicestepps\.com\/?(?:[?#].*)?$/);
   await page.waitForTimeout(1000);
   console.log('Logout done ✅');
 
@@ -174,7 +174,7 @@ test('Complete E2E Flow', async ({ page }) => {
     .filter({ hasText: 'Sign In' })
     .first()
     .click();
-  await page.waitForURL('https://realspicestepps.com/');
+  await page.waitForURL(/^https:\/\/realspicestepps\.com\/?(?:[?#].*)?$/);
   await page.waitForTimeout(1000);
   console.log('Sign In done ✅');
 
@@ -258,7 +258,7 @@ test('Complete E2E Flow', async ({ page }) => {
     { state: 'visible' }
   );
   await page.locator('button.swal2-confirm.custom-ok-button').click();
-  await page.waitForURL('https://realspicestepps.com/');
+  await page.waitForURL(/^https:\/\/realspicestepps\.com\/?(?:[?#].*)?$/);
   await page.waitForTimeout(1000);
   console.log('Pickup Order done ✅');
 
@@ -363,7 +363,7 @@ test('Complete E2E Flow', async ({ page }) => {
     { state: 'visible' }
   );
   await page.locator('button.swal2-confirm.custom-ok-button').click();
-  await page.waitForURL('https://realspicestepps.com/');
+  await page.waitForURL(/^https:\/\/realspicestepps\.com\/?(?:[?#].*)?$/);
   await page.waitForTimeout(1000);
   console.log('Delivery Order done ✅');
   console.log('COMPLETE E2E FLOW PASSED 🎉');

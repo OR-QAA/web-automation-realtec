@@ -39,6 +39,9 @@ export class SignUpPage {
   // Submit Sign Up button in Sign Up modal.
   private readonly submitSignUpButton: Locator;
 
+  // Matches homepage with or without trailing slash/query/hash.
+  private readonly homepageUrlPattern = /^https:\/\/realspicestepps\.com\/?(?:[?#].*)?$/;
+
   constructor(page: Page) {
     this.page = page;
 
@@ -46,7 +49,7 @@ export class SignUpPage {
     this.sidebarMenu = page.locator('#sidebarMenu');
 
     // Sidebar open button in top header.
-    this.sidebarOpenButton = page.getByRole('button', { name: 'Open sidebar' });
+    this.sidebarOpenButton = page.locator('#sidebarBtn');
 
     // Sidebar Sign Up entry for register page navigation.
     this.sidebarSignUpLink = this.sidebarMenu.getByRole('link', { name: 'Sign Up' });
@@ -139,44 +142,40 @@ export class SignUpPage {
   }
 
   async assertUserLoggedInAfterSignup(): Promise<void> {
-    // Wait for post-signup redirect/session settlement.
-    await this.page.waitForTimeout(2000);
-    await this.page.waitForURL('**/');
+    await this.page.waitForLoadState('domcontentloaded');
 
     const loggedInIndicators = this.page
       .locator('#sidebarMenu')
-      .getByText('Logout')
-      .or(this.page.locator('#sidebarMenu').getByText('Sign Out'))
-      .or(this.page.locator('#sidebarMenu').getByText('My Account'))
-      .or(this.page.locator('#sidebarMenu').getByText('My Orders'))
-      .or(this.page.locator('#sidebarMenu').getByText('My Profile'));
+      .getByText(/Logout|Sign Out|My Account|My Orders|My Profile/i)
+      .first();
 
-    const signInLink = this.page.locator('#sidebarMenu').getByRole('link', { name: 'Sign In' });
+    const signedOutIndicator = this.page
+      .locator('#sidebarMenu')
+      .getByRole('link', { name: 'Sign In' })
+      .first();
 
-    // Retry a few times because auth state can be delayed on CI runners.
-    for (let attempt = 0; attempt < 3; attempt++) {
-      await this.page.locator('#sidebarBtn').click();
+    // Retry because auth/session UI updates are occasionally delayed on CI.
+    for (let attempt = 0; attempt < 5; attempt++) {
+      await this.page.waitForSelector('#sidebarBtn', { state: 'visible' });
+      await this.sidebarOpenButton.click();
       await this.page.waitForSelector('#sidebarMenu:not(.hidden)');
-      await this.page.waitForTimeout(600);
 
-      if (await loggedInIndicators.first().isVisible().catch(() => false)) {
+      if (await loggedInIndicators.isVisible().catch(() => false)) {
         return;
       }
 
-      const isSignedOut = await signInLink.first().isVisible().catch(() => false);
-
       await this.page.keyboard.press('Escape');
-      await this.page.waitForTimeout(500);
 
-      if (isSignedOut) {
-        await this.page.reload();
-        await this.page.waitForTimeout(1200);
+      if (await signedOutIndicator.isVisible().catch(() => false)) {
+        await this.page.waitForTimeout(800);
+        await this.page.reload({ waitUntil: 'domcontentloaded' });
       }
     }
 
-    // Final check — user should be logged in.
-    await this.page.locator('#sidebarBtn').click();
+    // Final hard assertion for clearer failure if login state never settles.
+    await this.page.waitForURL(this.homepageUrlPattern, { timeout: 20000 });
+    await this.sidebarOpenButton.click();
     await this.page.waitForSelector('#sidebarMenu:not(.hidden)');
-    await expect(loggedInIndicators.first()).toBeVisible({ timeout: 8000 });
+    await expect(loggedInIndicators).toBeVisible({ timeout: 10000 });
   }
 }

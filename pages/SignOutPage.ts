@@ -40,6 +40,6 @@ export class SignOutPage {
     await this.logoutButton.click();
     await this.page.waitForSelector('#rt-logout-yes-btn');
     await this.logoutConfirmYesButton.click();
-    await this.page.waitForURL('https://realspicestepps.com/');
+    await this.page.waitForURL(/^https:\/\/realspicestepps\.com\/?(?:[?#].*)?$/);
   }
 }

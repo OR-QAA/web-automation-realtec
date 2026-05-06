@@ -85,7 +85,7 @@ test.describe('Checkout Flow - Place Order', () => {
     });
 
     await test.step('Verify redirected to homepage after order placement', async () => {
-      await page.waitForURL('https://realspicestepps.com/');
+      await page.waitForURL(/^https:\/\/realspicestepps\.com\/?(?:[?#].*)?$/);
       await expect(page).toHaveTitle(/Real Spice Stepps/i);
       console.log('Order placed successfully and redirected to homepage ✅');
     });

@@ -42,7 +42,7 @@ async ({ page }) => {
     await page.waitForTimeout(500);
   }
 
-  await page.waitForURL('https://realspicestepps.com/');
+  await page.waitForURL(/^https:\/\/realspicestepps\.com\/?(?:[?#].*)?$/);
   await page.waitForTimeout(800);
   console.log('Sign Up completed — user auto logged in ✅');
 
@@ -119,7 +119,7 @@ async ({ page }) => {
   await page.waitForTimeout(800);
 
   // Step 18: Verify back on homepage
-  await page.waitForURL('https://realspicestepps.com/');
+  await page.waitForURL(/^https:\/\/realspicestepps\.com\/?(?:[?#].*)?$/);
   await page.waitForTimeout(800);
   console.log('Pickup order placed successfully ✅');
 
@@ -239,7 +239,7 @@ async ({ page }) => {
   await page.waitForTimeout(800);
 
   // Step 39: Verify back on homepage
-  await page.waitForURL('https://realspicestepps.com/');
+  await page.waitForURL(/^https:\/\/realspicestepps\.com\/?(?:[?#].*)?$/);
   console.log('Delivery order placed successfully ✅');
   console.log('Full E2E flow completed ✅');
 });
