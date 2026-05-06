@@ -139,53 +139,44 @@ export class SignUpPage {
   }
 
   async assertUserLoggedInAfterSignup(): Promise<void> {
-    // Wait for page to settle after sign up
+    // Wait for post-signup redirect/session settlement.
     await this.page.waitForTimeout(2000);
+    await this.page.waitForURL('**/');
 
-    // Reload page to ensure fresh state
-    await this.page.reload();
-    await this.page.waitForTimeout(1500);
+    const loggedInIndicators = this.page
+      .locator('#sidebarMenu')
+      .getByText('Logout')
+      .or(this.page.locator('#sidebarMenu').getByText('Sign Out'))
+      .or(this.page.locator('#sidebarMenu').getByText('My Account'))
+      .or(this.page.locator('#sidebarMenu').getByText('My Orders'))
+      .or(this.page.locator('#sidebarMenu').getByText('My Profile'));
 
-    // Open sidebar to check login state
-    await this.page.locator('#sidebarBtn').click();
-    await this.page.waitForTimeout(800);
-
-    // After login sidebar should NOT show Sign In link
-    // Instead it should show account/profile or logout option
     const signInLink = this.page.locator('#sidebarMenu').getByRole('link', { name: 'Sign In' });
 
-    const signOutOption = this.page
-      .locator('#sidebarMenu')
-      .getByText('Sign Out')
-      .or(this.page.locator('#sidebarMenu').getByText('Logout'))
-      .or(this.page.locator('#sidebarMenu').getByText('My Account'));
+    // Retry a few times because auth state can be delayed on CI runners.
+    for (let attempt = 0; attempt < 3; attempt++) {
+      await this.page.locator('#sidebarBtn').click();
+      await this.page.waitForSelector('#sidebarMenu:not(.hidden)');
+      await this.page.waitForTimeout(600);
 
-    // Check sign out or account option is visible
-    await signOutOption.first().waitFor({
-      state: 'visible',
-      timeout: 5000,
-    }).catch(() => {});
+      if (await loggedInIndicators.first().isVisible().catch(() => false)) {
+        return;
+      }
 
-    // Verify Sign In is NOT visible (count should be 0)
-    const count = await signInLink.count();
-    if (count > 0) {
-      // Close sidebar and try again after reload
+      const isSignedOut = await signInLink.first().isVisible().catch(() => false);
+
       await this.page.keyboard.press('Escape');
       await this.page.waitForTimeout(500);
-      await this.page.reload();
-      await this.page.waitForTimeout(1500);
-      await this.page.locator('#sidebarBtn').click();
-      await this.page.waitForTimeout(800);
+
+      if (isSignedOut) {
+        await this.page.reload();
+        await this.page.waitForTimeout(1200);
+      }
     }
 
-    // Final check — user should be logged in
-    await expect(
-      this.page
-        .locator('#sidebarMenu')
-        .getByText('Sign Out')
-        .or(this.page.locator('#sidebarMenu').getByText('Logout'))
-        .or(this.page.locator('#sidebarMenu').getByText('My Account'))
-        .first(),
-    ).toBeVisible({ timeout: 8000 });
+    // Final check — user should be logged in.
+    await this.page.locator('#sidebarBtn').click();
+    await this.page.waitForSelector('#sidebarMenu:not(.hidden)');
+    await expect(loggedInIndicators.first()).toBeVisible({ timeout: 8000 });
   }
 }

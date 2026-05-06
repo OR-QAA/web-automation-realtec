@@ -92,10 +92,8 @@ test('Complete E2E Flow', async ({ page }) => {
   await page.locator('#sidebarBtn').click();
   await page.waitForTimeout(800);
 
-  // Click last item in sidebar = Logout
-  const sidebarLinks = page.locator('#sidebarMenu a, #sidebarMenu button');
-  const count = await sidebarLinks.count();
-  await sidebarLinks.nth(count - 1).click();
+  // Click Logout explicitly (avoid clicking app-store/footer links)
+  await page.locator('#sidebarMenu').getByText('Logout', { exact: true }).click();
   await page.waitForTimeout(800);
 
   // Click Yes on logout confirmation dialog
@@ -122,19 +120,22 @@ test('Complete E2E Flow', async ({ page }) => {
 
   // Click Forgot Password link
   await page.locator(
-    'a[href="https://realspicestepps.com/password/reset"]'
-  ).click();
+    'a[href="https://realspicestepps.com/password/reset"]:visible'
+  )
+    .first()
+    .click();
   await page.waitForTimeout(800);
 
   // Enter same email used at sign up
   await page.locator(
-    'input[type="email"][placeholder="Enter email"]'
+    'input[type="email"][placeholder="Enter email"]:visible'
   ).fill(user.email);
   await page.waitForTimeout(400);
 
   // Click Send Password Reset Link
-  await page.locator('button[type="submit"]')
+  await page.locator('button[type="submit"]:visible')
     .filter({ hasText: 'Send Password Reset Link' })
+    .first()
     .click();
   await page.waitForTimeout(1000);
   console.log('Forgot Password done ✅');
@@ -155,15 +156,11 @@ test('Complete E2E Flow', async ({ page }) => {
   await page.waitForTimeout(800);
 
   // Fill email — same as sign up
-  await page.locator(
-    'input[type="email"][placeholder="Enter email"]'
-  ).fill(user.email);
+  await page.locator('#loginEmail:visible').first().fill(user.email);
   await page.waitForTimeout(300);
 
   // Fill password — same as sign up
-  await page.locator(
-    'input[placeholder="Enter password"]'
-  ).fill(user.password);
+  await page.locator('#loginPassword:visible').first().fill(user.password);
   await page.waitForTimeout(300);
 
   // Check Remember Me
@@ -173,8 +170,9 @@ test('Complete E2E Flow', async ({ page }) => {
   await page.waitForTimeout(300);
 
   // Click Sign In button
-  await page.locator('button[type="submit"]')
+  await page.locator('button[type="submit"]:visible')
     .filter({ hasText: 'Sign In' })
+    .first()
     .click();
   await page.waitForURL('https://realspicestepps.com/');
   await page.waitForTimeout(1000);

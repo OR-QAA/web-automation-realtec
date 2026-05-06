@@ -214,25 +214,10 @@ async ({ page }) => {
   await page.evaluate(() => window.scrollBy(0, 500));
   await page.waitForTimeout(500);
 
-  // Step 34: Click Cash Payment tile
-  await page.waitForSelector(
-    'div.db-pay-tile.rounded-lg.border.border-gray-200.peer-checked\\:border-sky-500.peer-checked\\:ring-1.peer-checked\\:ring-sky-300.px-4.py-3.cursor-pointer.flex.items-center.justify-between',
-    { state: 'visible' }
-  );
-  await checkoutPage.cashPaymentTile.click();
+  // Step 34-35: Select Cash Payment reliably
+  await checkoutPage.cashPaymentTile.first().click();
   await page.waitForTimeout(600);
-
-  // Step 35: Click radio button inside Cash Payment tile
-  await page.waitForSelector(
-    'div.db-pay-tile.rounded-lg.border.border-gray-200.peer-checked\\:border-sky-500.peer-checked\\:ring-1.peer-checked\\:ring-sky-300.px-4.py-3.cursor-pointer.flex.items-center.justify-between span.h-2\\.5.w-2\\.5.rounded-full.bg-sky-600.opacity-0.peer-checked\\:opacity-100.transition.duration-150',
-    { state: 'visible' }
-  );
-  await page
-    .locator(
-      'div.db-pay-tile.rounded-lg.border.border-gray-200.peer-checked\\:border-sky-500.peer-checked\\:ring-1.peer-checked\\:ring-sky-300.px-4.py-3.cursor-pointer.flex.items-center.justify-between span.h-2\\.5.w-2\\.5.rounded-full.bg-sky-600.opacity-0.peer-checked\\:opacity-100.transition.duration-150'
-    )
-    .first()
-    .click();
+  await checkoutPage.cashPaymentRadio.first().click();
   await page.waitForTimeout(600);
 
   // Step 36: Click Continue to Payment
