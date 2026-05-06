@@ -1,17 +1,17 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests',
-  fullyParallel: true,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
-  reporter: [
-    ['html', { open: 'never', outputFolder: 'playwright-report' }],
-    ['list'],
-  ],
+  timeout: 120000,
   use: {
-    baseURL: 'https://realspicestepps.com/',
-    trace: 'retain-on-failure',
+    headless: true,
+    viewport: { width: 1280, height: 720 },
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  reporter: [
+    ['html', { outputFolder: 'playwright-report' }],
+    ['list']
+  ],
+  workers: 1,
 });

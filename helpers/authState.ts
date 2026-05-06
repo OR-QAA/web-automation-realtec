@@ -1,10 +1,11 @@
 import { generateUserData } from './testData';
 
-// This stores the generated user so same credentials
-// are used across sign up and sign in in same test run
-let currentUser = generateUserData();
+export type UserData = ReturnType<typeof generateUserData>;
 
-export const getUser = () => currentUser;
-export const resetUser = () => {
+let currentUser: UserData = generateUserData();
+
+export const getUser = (): UserData => currentUser;
+
+export const resetUser = (): void => {
   currentUser = generateUserData();
 };
