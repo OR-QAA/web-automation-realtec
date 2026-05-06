@@ -70,13 +70,8 @@ async ({ page }) => {
   await cartPage.goToCheckoutBtn.click();
   await page.waitForTimeout(800);
 
-  // Step 8: Click Proceed to Checkout in auth dialog
-  await page.waitForSelector('#proceedCheckoutBtn', { state: 'visible' });
-  await cartPage.proceedCheckoutBtn.click();
-  await page.waitForTimeout(800);
-
-  // Step 9: Wait for checkout page
-  await page.waitForURL('**/check-out');
+  // Step 8: Continue to checkout (dialog may be hidden for logged-in users)
+  await cartPage.clickProceedToCheckoutFromDialog();
   await page.waitForTimeout(800);
 
   // Step 10: Select Pickup option
@@ -148,14 +143,8 @@ async ({ page }) => {
   await cartPage.goToCheckoutBtn.click();
   await page.waitForTimeout(800);
 
-  // Step 24: Click Proceed to Checkout in auth dialog
-  await page.waitForSelector('#proceedCheckoutBtn', { state: 'visible' });
-  await cartPage.proceedCheckoutBtn.click();
-  await page.waitForTimeout(800);
-
-  // Step 25: Wait for checkout page
-  // Note: Delivery is already selected by default — no need to click
-  await page.waitForURL('**/check-out');
+  // Step 24-25: Continue to checkout (delivery selected by default)
+  await cartPage.clickProceedToCheckoutFromDialog();
   await page.waitForTimeout(800);
 
   // Step 26: Click Add New Address link

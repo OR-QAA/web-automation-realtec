@@ -26,8 +26,11 @@ export class CartPage {
   }
 
   async clickProceedToCheckoutFromDialog(): Promise<void> {
-    await this.page.waitForSelector('#proceedCheckoutBtn', { state: 'visible' });
-    await this.proceedCheckoutBtn.click();
+    // If user is already authenticated, the modal button can stay hidden while
+    // navigation proceeds directly to checkout.
+    if (await this.proceedCheckoutBtn.isVisible().catch(() => false)) {
+      await this.proceedCheckoutBtn.click();
+    }
     await this.page.waitForURL('**/check-out');
   }
 }

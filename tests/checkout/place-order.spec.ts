@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { getUser } from '../../helpers/authState';
+import { getUser, resetUser } from '../../helpers/authState';
 import { CartPage } from '../../pages/CartPage';
 import { CheckoutPage } from '../../pages/CheckoutPage';
 import { ProductPage } from '../../pages/ProductPage';
@@ -10,6 +10,7 @@ test.describe('Checkout Flow - Place Order', () => {
   test('user can place order from cart and redirect to homepage', async ({ page }) => {
     test.setTimeout(120000);
 
+    resetUser();
     const user = getUser();
     const signUpPage = new SignUpPage(page);
     const signInPage = new SignInPage(page);

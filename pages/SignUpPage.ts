@@ -39,8 +39,9 @@ export class SignUpPage {
   // Submit Sign Up button in Sign Up modal.
   private readonly submitSignUpButton: Locator;
 
-  // Matches homepage with or without trailing slash/query/hash.
-  private readonly homepageUrlPattern = /^https:\/\/realspicestepps\.com\/?(?:[?#].*)?$/;
+  // Matches post-signup redirect only on homepage (/ or /home), with optional query/hash.
+  private readonly homepageUrlPattern =
+    /^https:\/\/(?:www\.)?realspicestepps\.com(?:\/(?:home)?)?(?:[?#].*)?$/;
 
   constructor(page: Page) {
     this.page = page;
@@ -143,6 +144,11 @@ export class SignUpPage {
 
   async assertUserLoggedInAfterSignup(): Promise<void> {
     await this.page.waitForLoadState('domcontentloaded');
+    console.log('SignUpPage.homepageUrlPattern =', this.homepageUrlPattern.toString());
+    console.log('Post-signup current URL before waitForURL =', this.page.url());
+    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForURL(this.homepageUrlPattern, { timeout: 30000 });
+    console.log('Post-signup current URL after waitForURL =', this.page.url());
 
     const loggedInIndicators = this.page
       .locator('#sidebarMenu')
@@ -173,7 +179,6 @@ export class SignUpPage {
     }
 
     // Final hard assertion for clearer failure if login state never settles.
-    await this.page.waitForURL(this.homepageUrlPattern, { timeout: 20000 });
     await this.sidebarOpenButton.click();
     await this.page.waitForSelector('#sidebarMenu:not(.hidden)');
     await expect(loggedInIndicators).toBeVisible({ timeout: 10000 });

@@ -1,7 +1,31 @@
 import { test, expect } from '@playwright/test';
 import { generateUserData } from '../../helpers/testData';
+import { ProductPage } from '../../pages/ProductPage';
 
 test('Complete E2E Flow', async ({ page }) => {
+  const productPage = new ProductPage(page);
+  const continueToCheckout = async (): Promise<void> => {
+    const proceedCheckoutBtn = page.locator('#proceedCheckoutBtn');
+
+    try {
+      await Promise.race([
+        page.waitForURL('**/check-out', { timeout: 8000 }),
+        proceedCheckoutBtn.waitFor({ state: 'visible', timeout: 8000 }),
+      ]);
+    } catch {
+      // Continue with explicit checks below for deterministic fallback.
+    }
+
+    if ((await page.url()).includes('/check-out')) {
+      return;
+    }
+
+    if (await proceedCheckoutBtn.isVisible().catch(() => false)) {
+      await proceedCheckoutBtn.click();
+    }
+
+    await page.waitForURL('**/check-out');
+  };
 
   // Generate ONE user — reuse across entire test
   const user = generateUserData();
@@ -146,21 +170,22 @@ test('Complete E2E Flow', async ({ page }) => {
 
   // Open sidebar
   await page.locator('#sidebarBtn').click();
-  await page.waitForTimeout(800);
+  await page.waitForSelector('#sidebarMenu:not(.hidden)', { state: 'visible' });
 
   // Click Sign In
   await page.locator(
     'a[href="https://realspicestepps.com/customer-login"]'
   ).first().click();
   await page.waitForURL('**/customer-login');
-  await page.waitForTimeout(800);
+  await page.waitForSelector('input[type="email"][placeholder="Enter email"]:visible', { timeout: 15000 });
 
   // Fill email — same as sign up
-  await page.locator('#loginEmail:visible').first().fill(user.email);
+  await page.waitForSelector('input[type="email"][placeholder="Enter email"]:visible', { timeout: 15000 });
+  await page.locator('input[type="email"][placeholder="Enter email"]:visible').first().fill(user.email);
   await page.waitForTimeout(300);
 
   // Fill password — same as sign up
-  await page.locator('#loginPassword:visible').first().fill(user.password);
+  await page.locator('input[placeholder="Enter password"]:visible').first().fill(user.password);
   await page.waitForTimeout(300);
 
   // Check Remember Me
@@ -182,29 +207,10 @@ test('Complete E2E Flow', async ({ page }) => {
   // 6. PICKUP ORDER
   // ═══════════════════════════════════════
 
-  // Click first product on homepage
-  await page.locator('.product-card, [data-product], .menu-item')
-    .first().click();
-  await page.waitForTimeout(800);
-
-  // Select first option in each modifier group
-  const modifierOptions = page.locator(
-    'input[type="radio"], input[type="checkbox"]'
-  );
-  const modCount = await modifierOptions.count();
-  for (let i = 0; i < modCount; i++) {
-    const mod = modifierOptions.nth(i);
-    const isVisible = await mod.isVisible();
-    if (isVisible) {
-      await mod.click();
-      await page.waitForTimeout(300);
-    }
-  }
-
-  // Click Add to Cart
-  await page.locator('button')
-    .filter({ hasText: /add to cart/i })
-    .click();
+  // Open first product and satisfy modifier requirements with shared page object logic
+  await productPage.openFirstProduct();
+  await productPage.selectFirstAvailableOptionInEachModifierGroup();
+  await productPage.addToCart();
   await page.waitForTimeout(800);
 
   // Wait for cart drawer
@@ -215,10 +221,8 @@ test('Complete E2E Flow', async ({ page }) => {
   await page.locator('#goCheckoutBtn').click();
   await page.waitForTimeout(800);
 
-  // Click Proceed to Checkout in dialog
-  await page.waitForSelector('#proceedCheckoutBtn', { state: 'visible' });
-  await page.locator('#proceedCheckoutBtn').click();
-  await page.waitForURL('**/check-out');
+  // Continue to checkout from auth/cart transition
+  await continueToCheckout();
   await page.waitForTimeout(800);
 
   // Select Pickup
@@ -266,29 +270,10 @@ test('Complete E2E Flow', async ({ page }) => {
   // 7. DELIVERY ORDER (same user — no login)
   // ═══════════════════════════════════════
 
-  // Click first product on homepage
-  await page.locator('.product-card, [data-product], .menu-item')
-    .first().click();
-  await page.waitForTimeout(800);
-
-  // Select modifiers
-  const modifierOptions2 = page.locator(
-    'input[type="radio"], input[type="checkbox"]'
-  );
-  const modCount2 = await modifierOptions2.count();
-  for (let i = 0; i < modCount2; i++) {
-    const mod = modifierOptions2.nth(i);
-    const isVisible = await mod.isVisible();
-    if (isVisible) {
-      await mod.click();
-      await page.waitForTimeout(300);
-    }
-  }
-
-  // Click Add to Cart
-  await page.locator('button')
-    .filter({ hasText: /add to cart/i })
-    .click();
+  // Open first product and satisfy modifier requirements
+  await productPage.openFirstProduct();
+  await productPage.selectFirstAvailableOptionInEachModifierGroup();
+  await productPage.addToCart();
   await page.waitForTimeout(800);
 
   // Wait for cart drawer
@@ -299,10 +284,8 @@ test('Complete E2E Flow', async ({ page }) => {
   await page.locator('#goCheckoutBtn').click();
   await page.waitForTimeout(800);
 
-  // Click Proceed to Checkout
-  await page.waitForSelector('#proceedCheckoutBtn', { state: 'visible' });
-  await page.locator('#proceedCheckoutBtn').click();
-  await page.waitForURL('**/check-out');
+  // Continue to checkout from auth/cart transition
+  await continueToCheckout();
   await page.waitForTimeout(800);
 
   // Delivery is selected by default — no click needed

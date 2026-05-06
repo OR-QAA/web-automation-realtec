@@ -1,5 +1,5 @@
 import { test } from '@playwright/test';
-import { getUser } from '../../helpers/authState';
+import { getUser, resetUser } from '../../helpers/authState';
 import { ProductPage } from '../../pages/ProductPage';
 import { SignInPage } from '../../pages/SignInPage';
 import { SignOutPage } from '../../pages/SignOutPage';
@@ -7,6 +7,7 @@ import { SignUpPage } from '../../pages/SignUpPage';
 
 test.describe('Menu Flow - Add To Cart', () => {
   test('user can select first product modifiers and add to cart', async ({ page }) => {
+    resetUser();
     const user = getUser();
     const signUpPage = new SignUpPage(page);
     const signOutPage = new SignOutPage(page);
