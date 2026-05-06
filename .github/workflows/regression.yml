@@ -49,8 +49,10 @@ jobs:
         uses: rtCamp/action-slack-notify@v2
         if: always()
         env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_CHANNEL: '#qa-automation'
+          # Support either secret naming convention.
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL || secrets.SLACK_WEBHOOK }}
+          # Prefer channel ID/name from secrets; fallback to current default.
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL || '#qa-automation' }}
           SLACK_TITLE: 'RealTec QA Regression Results'
           SLACK_MESSAGE: |
             *Project:* RealTec QA Automation
