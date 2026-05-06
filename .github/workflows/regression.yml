@@ -10,6 +10,10 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    outputs:
+      test_status: ${{ steps.set_test_status.outputs.test_status }}
+      slack_status_text: ${{ steps.set_test_status.outputs.slack_status_text }}
+      slack_color: ${{ steps.set_test_status.outputs.slack_color }}
 
     steps:
       # Step 1: Checkout the repository code
@@ -32,8 +36,28 @@ jobs:
 
       # Step 5: Run full regression test suite
       - name: Run Playwright Regression Tests
-        run: npx playwright test --workers=1
+        id: run_tests
+        run: |
+          set +e
+          npx playwright test --workers=1
+          TEST_EXIT_CODE=$?
+          echo "test_exit_code=$TEST_EXIT_CODE" >> "$GITHUB_OUTPUT"
+          exit 0
         continue-on-error: true
+
+      - name: Set test status for Slack
+        id: set_test_status
+        if: always()
+        run: |
+          if [ "${{ steps.run_tests.outputs.test_exit_code }}" != "0" ]; then
+            echo "test_status=failed" >> "$GITHUB_OUTPUT"
+            echo "slack_status_text=🔴 Failed" >> "$GITHUB_OUTPUT"
+            echo "slack_color=#E01E5A" >> "$GITHUB_OUTPUT"
+          else
+            echo "test_status=passed" >> "$GITHUB_OUTPUT"
+            echo "slack_status_text=🟢 Passed" >> "$GITHUB_OUTPUT"
+            echo "slack_color=#2EB67D" >> "$GITHUB_OUTPUT"
+          fi
 
       # Step 6: Upload HTML test report as artifact
       - name: Upload Test Report
@@ -59,8 +83,8 @@ jobs:
             *Branch:* ${{ github.ref_name }}
             *Triggered By:* ${{ github.event_name }}
             *Executed By:* ${{ github.actor }}
-            *Status:* ${{ job.status == 'success' && '🟢 Passed' || '🔴 Failed' }}
+            *Status:* ${{ steps.set_test_status.outputs.slack_status_text }}
             *Report:* Check GitHub Actions artifacts for full HTML report
-          SLACK_COLOR: ${{ job.status == 'success' && '#2EB67D' || '#E01E5A' }}
+          SLACK_COLOR: ${{ steps.set_test_status.outputs.slack_color }}
           SLACK_USERNAME: 'QA Automation Bot'
           SLACK_ICON_EMOJI: ':robot_face:'
